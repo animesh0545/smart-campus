@@ -32,7 +32,7 @@ resource "aws_security_group" "db" {
   vpc_id      = var.vpc_id
 }
 
-# SG-to-SG rule (the Take-Home 2 pattern): only the EKS node SG can reach 5432
+# SG-to-SG rule: only the EKS node security group can reach 5432
 resource "aws_security_group_rule" "db_from_eks" {
   type                     = "ingress"
   security_group_id        = aws_security_group.db.id

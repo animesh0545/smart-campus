@@ -1,5 +1,5 @@
 # PowerShell version of scripts/port-forward.sh
-# ArgoCD http://localhost:8081 (admin / printed password), Grafana http://localhost:3000 (admin / lab123),
+# ArgoCD http://localhost:8081 (admin / printed password), Grafana http://localhost:3000 (admin / campus-admin),
 # Prometheus http://localhost:9090. Close the window or press Ctrl+C to stop.
 . "$PSScriptRoot\common.ps1"
 Need @('kubectl')

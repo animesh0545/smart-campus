@@ -1,4 +1,4 @@
-"""Consistent hashing with virtual nodes (Data Partitioning lecture).
+"""Consistent hashing with virtual nodes.
 
 * Hash space: SHA-1, i.e. positions 0 .. 2^160 - 1, viewed as a ring.
 * Every storage node is placed on the ring `vnodes` times

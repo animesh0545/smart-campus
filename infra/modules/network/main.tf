@@ -1,4 +1,4 @@
-# VPC with 2 public + 2 private subnets (same shape as Take-Home 2).
+# VPC with 2 public + 2 private subnets across 2 availability zones.
 # No NAT gateway, to save $0.045/hr. EKS nodes and EMR live in public subnets
 # behind tight security groups; RDS and MSK live in private subnets with no
 # route to the internet. Free S3/DynamoDB gateway endpoints keep that traffic

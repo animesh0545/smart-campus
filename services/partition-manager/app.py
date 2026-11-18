@@ -1,13 +1,13 @@
 """Partition Manager (owner: Shreyansh Kedawat). Requirement f: consistent hashing.
 
-The lecture's "routing tier" (a partition-aware load balancer):
+Acts as the routing tier (a partition-aware load balancer):
   * Storage nodes = DynamoDB tables smart-campus-bookings-node-0..3. node-0..2
-    start in the ring; node-3 is a spare that joins live in the demo.
+    start in the ring; node-3 is a spare that can join at runtime.
   * Membership lives in ZooKeeper under /smart-campus/nodes (one znode per
     node). Every Partition Manager replica keeps a ChildrenWatch on it and
     rebuilds its in-memory HashRing when a node joins or leaves, so the
-    replicas are stateless and stay consistent (Lab 8 / lecture slide
-    "ZooKeeper notifies the routing tier").
+    replicas are stateless and stay consistent (ZooKeeper notifies the
+    routing tier of every membership change).
   * Rebalancing runs under a ZooKeeper lock (only one replica migrates at a
     time) and moves ONLY the keys whose owner changed.
 
@@ -212,7 +212,7 @@ def rebalance(old_ring: HashRing, new_ring: HashRing, apply_membership) -> Dict[
 
 
 def acquire_rebalance_lock():
-    """ZooKeeper lock recipe (Lab 8): only one replica rebalances at a time."""
+    """ZooKeeper lock recipe: only one replica rebalances at a time."""
     lock = ZK.Lock(LOCK_PATH, identifier=HOSTNAME)
     try:
         lock.acquire(timeout=30)

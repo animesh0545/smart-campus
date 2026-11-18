@@ -9,5 +9,5 @@ charts:
   loki: 6.24.0
   alloy: 0.10.1
 
-grafanaAdminPassword: lab123
+grafanaAdminPassword: campus-admin
 awsRegion: us-east-1

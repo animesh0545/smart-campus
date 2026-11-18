@@ -64,7 +64,7 @@ After the demo: `./scripts/emr.sh down`.
 
 **Why virtual nodes?** With one token per node the arcs are random lengths, so load is badly skewed (the 1-vnode simulation gives one node about 84 % of keys). 150 tokens per node average the arc lengths out (max/mean ≈ 1.1). When a node leaves, its load spreads over *all* remaining nodes, not just one neighbour.
 
-**Why `resourceId#date` as the key?** The conflict check needs all bookings of one resource on one day; that is exactly one partition, so one Query and no scatter/gather. The date component spreads a busy room across many partitions, so it does not become a hot spot. It is the lecture's compound/hybrid key: hash part plus sort part (`startTime#bookingId`).
+**Why `resourceId#date` as the key?** The conflict check needs all bookings of one resource on one day; that is exactly one partition, so one Query and no scatter/gather. The date component spreads a busy room across many partitions, so it does not become a hot spot. It is a compound (hybrid) key: hash part plus sort part (`startTime#bookingId`).
 
 **How do the Partition Manager replicas agree on the ring?** Membership lives only in ZooKeeper. Each replica has a ChildrenWatch; ZooKeeper pushes changes and each replica rebuilds the same deterministic ring (same hash, same vnode count). Migrations take a ZooKeeper lock so only one runs.
 
@@ -86,6 +86,6 @@ After the demo: `./scripts/emr.sh down`.
 
 **Exactly-once?** Exactly-once state via checkpoints; the Kafka sink is at-least-once. The consumer writes each result with key `resourceId + windowStart`, so a duplicate overwrites itself (idempotent).
 
-**Why EMR and this Flink version?** The PDF asks for Flink on a managed cluster; EMR 7.2.0 (as in Lab 3) ships Flink 1.18.1, so the job builds against 1.18.1 and connector `3.1.0-1.18`.
+**Why EMR and this Flink version?** EMR gives a managed Hadoop/YARN cluster that runs Flink and can be created only when needed; EMR 7.2.0 ships Flink 1.18.1, so the job builds against 1.18.1 and connector `3.1.0-1.18`.
 
 **Why three storage products?** SQL (RDS) for relational, constrained data; NoSQL (DynamoDB) for high-throughput partitioned booking records and analytics results; object storage (S3) for raw uploads (which trigger the Lambda) and Flink artifacts/checkpoints.

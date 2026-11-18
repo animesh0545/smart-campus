@@ -21,7 +21,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
-      - name: terraform fmt (advisory: fix locally with `terraform fmt -recursive infra`)
+      - name: "terraform fmt (advisory, fix locally with: terraform fmt -recursive infra)"
         continue-on-error: true
         run: terraform fmt -check -recursive -diff
       - name: terraform init (no backend)

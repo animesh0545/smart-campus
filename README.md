@@ -8,6 +8,17 @@
 
 Other documents: [`docs/DESIGN.md`](docs/DESIGN.md) (design document) · [`docs/DEMO-ANIMESH.md`](docs/DEMO-ANIMESH.md) · [`docs/DEMO-SHREYANSH.md`](docs/DEMO-SHREYANSH.md) · [`task_divison.txt`](task_divison.txt)
 
+## Deliverables in this repository
+
+| Deliverable | Location |
+|---|---|
+| Microservices code | `services/`: User Service, Resource Registry, Room Booking, Equipment Booking, Availability, Partition Manager, Usage Analytics (EKS), shared library `services/common/`, Notification Service Lambda `services/notification-lambda/`; gRPC contract `proto/campus.proto`; Flink job `analytics-flink/`; tests `services/tests/` |
+| Infrastructure as Code (Terraform) | `infra/`: root module plus `infra/modules/` network, eks, cicd, data, msk, emr, lambda, argocd, observability |
+| Kubernetes manifests | `gitops/apps/smart-campus/` (Deployments, Services, HPAs, gateway, ZooKeeper, Kustomize image tags), `gitops/observability/` (PodMonitor, PrometheusRule, Grafana dashboards) |
+| GitOps configuration | `gitops/root/` (ArgoCD app-of-apps: monitoring stack and application), `infra/modules/argocd/` (ArgoCD install + root Application), `.github/workflows/ci.yml` (build, push to ECR, image-tag commit) |
+| Design document | `docs/DESIGN.pdf` (source `docs/DESIGN.md`) |
+| Task division | `task_divison.txt` |
+
 **Contents**
 [1 Repository layout](#1-repository-layout) · [2 Command cheat-sheet](#2-command-cheat-sheet) · [3 Prerequisites](#3-prerequisites) · [4 Run and test locally](#4-run-and-test-locally-no-aws) · [5 Deploy to AWS](#5-deploy-to-aws-step-by-step) · [6 Test on AWS](#6-test-on-aws) · [7 Demo day runbook](#7-demo-day-runbook) · [8 Daily workflow and cost](#8-daily-workflow-stop-resume-change-cost) · [9 Submission checklist](#9-submission-checklist) · [10 Troubleshooting](#10-troubleshooting) · [11 Bash / PowerShell map](#11-bash--powershell-map)
 
@@ -227,7 +238,7 @@ python3 scripts/e2e_check.py --url $URL        # expect: all checks passed
 | UI | URL | Login |
 |---|---|---|
 | ArgoCD | http://localhost:8081 | `admin` / password printed by the script |
-| Grafana | http://localhost:3000 | `admin` / `lab123` (set in `gitops/root/values.yaml`) |
+| Grafana | http://localhost:3000 | `admin` / `campus-admin` (set in `gitops/root/values.yaml`) |
 | Prometheus | http://localhost:9090 | none |
 
 Grafana → Dashboards: **Smart Campus - Services & Cluster** and **Smart Campus - Serverless & Flink logs (CloudWatch)**.

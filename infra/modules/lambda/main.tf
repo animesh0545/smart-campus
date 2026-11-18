@@ -2,7 +2,7 @@
 # Two event sources:
 #   1. SQS booking-notifications queue  (booking confirmations / changes / cancellations)
 #   2. S3 uploads bucket, prefix imports/ (bulk resource CSV uploaded -> admin notice)
-# Packaging follows Practice Sheet 6 Example 1 (archive_file + source_code_hash).
+# Packaged from source with archive_file; source_code_hash redeploys on code change.
 
 variable "name" { type = string }
 variable "source_dir" { type = string }

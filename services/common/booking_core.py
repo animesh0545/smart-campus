@@ -59,7 +59,7 @@ class BookingUpdate(BaseModel):
 
 
 def partition_key(resource_id: str, date: str) -> str:
-    """Compound key (lecture: 'hybrid' partitioning): resourceId#date is hashed;
+    """Compound key (hybrid of hash and range partitioning): resourceId#date is hashed;
     the sort key startTime#bookingId orders a resource's day inside the partition."""
     return f"{resource_id}#{date}"
 
@@ -243,7 +243,7 @@ def build_booking_app(kind: str, prefix: str, title: str, on_startup=None):
     @app.get(f"{prefix}/users/{{user_id}}/bookings")
     def bookings_for_user(user_id: str, limit: int = 50):
         """userId is not the partition key, so this is a scatter/gather query over
-        every partition node (lecture: secondary index partitioned by document)."""
+        every partition node (a secondary index partitioned by document)."""
         try:
             ring = grpc_util.partition_stub().GetRing(pb.Empty(), timeout=2.0, metadata=grpc_util.metadata())
         except grpc.RpcError as exc:

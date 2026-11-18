@@ -1,5 +1,5 @@
-# Flink on EMR (requirement e). Extends the course's Lab 3 emr_cluster.tf:
-#  - runs in our own VPC/public subnet (Lab 3 used the default VPC)
+# Flink on EMR (requirement e):
+#  - runs in our own VPC/public subnet (not the default VPC)
 #  - creates the EMR service role + EC2 instance profile here, instead of
 #    `aws emr create-default-roles` (so requirement a holds: no manual IAM)
 #  - our own EMR-managed security groups (revoke_rules_on_delete lets

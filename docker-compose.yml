@@ -41,7 +41,7 @@ services:
     ports: ["5432:5432"]
 
   zookeeper:
-    image: zookeeper:3.9.3   # same image as Lab 8
+    image: zookeeper:3.9.3   # same image as on EKS
     ports: ["2181:2181"]
 
   kafka:

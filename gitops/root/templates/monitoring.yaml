@@ -1,8 +1,8 @@
 # Observability stack (requirement h), all deployed by ArgoCD from Git.
 #   kube-prometheus-stack : Prometheus + Grafana + kube-state-metrics + node-exporter
-#                           (same chart as Practice Sheet 11, release name "kps")
-#   loki                  : log store (Practice Sheet 6)
-#   alloy                 : log shipper, tails every pod's stdout -> Loki (Practice Sheet 6)
+#                           (release name "kps")
+#   loki                  : log store (single-binary mode, filesystem storage)
+#   alloy                 : log shipper, tails every pod's stdout -> Loki
 # Grafana also gets a CloudWatch data source (EKS Pod Identity role created by
 # Terraform) for the Flink/EMR and Lambda logs.
 apiVersion: argoproj.io/v1alpha1

@@ -1,4 +1,4 @@
-# API gateway: the public entry point (the PDF requires a web service on a public URL).
+# API gateway: the single public entry point (public URL) for all REST APIs.
 # Service type LoadBalancer -> AWS load balancer in the public subnets.
 apiVersion: apps/v1
 kind: Deployment

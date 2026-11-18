@@ -1,5 +1,5 @@
 variable "region" {
-  description = "AWS region (course labs use us-east-1)"
+  description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
@@ -83,7 +83,7 @@ variable "create_github_oidc_provider" {
 
 # ---- EMR ----
 variable "emr_release" {
-  description = "EMR release; emr-7.2.0 (course Lab 3) ships Flink 1.18.1"
+  description = "EMR release; emr-7.2.0 ships Flink 1.18.1 (the version the job is built against)"
   type        = string
   default     = "emr-7.2.0"
 }

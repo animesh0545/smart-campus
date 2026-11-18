@@ -1,4 +1,4 @@
-# Recording + alerting rules (same PrometheusRule pattern as Practice Sheet 11 rules.yaml)
+# Recording + alerting rules for the Smart Campus services (Prometheus Operator PrometheusRule)
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

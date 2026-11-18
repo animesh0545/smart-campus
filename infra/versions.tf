@@ -24,8 +24,8 @@ terraform {
     }
   }
 
-  # Remote state in S3 (bucket created once by scripts/bootstrap.sh, the same
-  # pattern as Practice Sheet 6 Example 2). Values come from backend.hcl:
+  # Remote state in S3 with a DynamoDB lock table (both created once by
+  # scripts/bootstrap.sh). Values come from backend.hcl:
   #   terraform init -backend-config=backend.hcl
   backend "s3" {}
 }

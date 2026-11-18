@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Open the internal UIs on localhost (Ctrl+C stops all).
 #   ArgoCD      http://localhost:8081   user admin, password printed below
-#   Grafana     http://localhost:3000   user admin, password lab123
+#   Grafana     http://localhost:3000   user admin, password campus-admin
 #   Prometheus  http://localhost:9090
 source "$(dirname "$0")/lib.sh"
 need kubectl

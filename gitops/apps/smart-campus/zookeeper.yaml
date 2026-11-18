@@ -1,6 +1,7 @@
-# ZooKeeper: ring membership + rebalance lock for the Partition Manager
-# (lecture: "each node registers in ZooKeeper, which notifies the routing tier").
-# Same image as Lab 8. Single standalone server is enough for the assignment.
+# ZooKeeper: ring membership + rebalance lock for the Partition Manager.
+# Storage nodes are registered as znodes; ZooKeeper watches notify every
+# Partition Manager replica (the routing tier) when membership changes.
+# A single standalone server is enough for this deployment.
 # Data is ephemeral (emptyDir): after a ZooKeeper restart the Partition Manager
 # re-seeds the initial members node-0..node-2.
 apiVersion: apps/v1

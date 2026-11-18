@@ -20,8 +20,8 @@ Open tabs: ArgoCD (Applications), Grafana dashboard "Smart Campus - Services & C
 2. `terraform -chdir=infra plan` → **"No changes"**: the live infrastructure matches the code.
 3. Point out:
    * `modules/network`: public/private subnets, **no NAT** (cost), S3/DynamoDB gateway endpoints.
-   * `modules/data`: RDS SG accepts 5432 **only from the EKS node SG** (SG-to-SG rule, as in TH2).
-   * `modules/emr`: EMR roles created in Terraform instead of `aws emr create-default-roles` (Lab 3 needed that manual step).
+   * `modules/data`: RDS SG accepts 5432 **only from the EKS node SG** (SG-to-SG rule).
+   * `modules/emr`: EMR roles created in Terraform instead of `aws emr create-default-roles` (no manual IAM step).
    * `enable_emr` / `enable_msk` switches + AWS Budgets alert in `modules/observability`.
 4. `aws resourcegroupstaggingapi get-resources --tag-filters Key=ManagedBy,Values=terraform --query 'length(ResourceTagMappingList)'`: everything is tagged as Terraform-managed.
 
@@ -65,7 +65,7 @@ curl -s -X POST $URL/api/rooms/bookings -H 'Content-Type: application/json' \
 
 ## Likely questions
 
-**Why Terraform rather than boto3?** Declarative and idempotent: `plan` shows a diff against the state file; boto3 is imperative, so you code the *how* and track what exists yourself (Practice Sheet 2).
+**Why Terraform rather than boto3?** Declarative and idempotent: `plan` shows a diff against the state file; boto3 is imperative, so you code the *how* and track what exists yourself.
 
 **Where is the Terraform state? What if two of us apply at once?** In S3 (versioned) with a DynamoDB lock table, created once by `bootstrap.sh`; a second apply waits for the lock.
 
@@ -83,7 +83,7 @@ curl -s -X POST $URL/api/rooms/bookings -H 'Content-Type: application/json' \
 
 **How does CI authenticate to AWS?** GitHub OIDC → `sts:AssumeRoleWithWebIdentity` into a role limited to ECR push and the Flink artifact path, and only for this repository.
 
-**Why Loki and not EFK?** Loki indexes only labels, so it is light enough for a 3-node cluster, and Grafana queries it next to Prometheus. Alloy is the shipper from Practice Sheet 6.
+**Why Loki and not EFK?** Loki indexes only labels, so it is light enough for a 3-node cluster, and Grafana queries it next to Prometheus. Alloy tails every pod's stdout and pushes to Loki.
 
 **RPS / error rate / latency queries?** `sum by (service)(rate(http_requests_total[1m]))`; 5xx rate / total rate; `histogram_quantile(0.95, sum by (service, le)(rate(http_request_duration_seconds_bucket[1m])))`.
 
