@@ -1,39 +1,34 @@
-CS/SS G527 Cloud Computing - Assignment (Semester I 2026-27)
-Scenario S4: Smart Campus - room and equipment booking across campus buildings
-Required concept: data partitioning using consistent hashing
-Cloud: AWS (us-east-1)
+CS/SS G527 Cloud Computing - Assignment, Semester I 2026-27
+Scenario S4: Smart Campus - Room and Equipment Booking across Campus Buildings
+Required concept: Data partitioning using consistent hashing
 
-Team (2 members; tasks a-h and the 8 services are divided equally: 4 tasks + 4 services each)
+Group members: 2. Tasks (a)-(h) and the 8 microservices are divided equally:
+4 tasks and 4 services per member.
 
-------------------------------------------------------------------------------------------
-ID No.          Name                 Tasks                                   Services
-------------------------------------------------------------------------------------------
-2026PHXP0098P   Animesh Bhargava     a  Infrastructure as Code (Terraform)    1 User Service
-                                     c  EKS + HPA (2 services) + k6 load test 2 Resource Registry
-                                     d  GitOps with ArgoCD (+ CI to ECR)      3 Room Booking Service
-                                     h  Observability: Prometheus, Grafana,   6 Availability Service
-                                        centralized logging (Loki + CloudWatch)
+==========================================================================
+Member 1
+  ID No.   : 2026PHXP0098P
+  Name     : Animesh Bhargava
+  Tasks    : (a) Infrastructure as Code - all cloud resources provisioned with Terraform
+             (c) Managed Kubernetes (EKS), HPA on two critical services, k6 load test
+             (d) GitOps deployment with ArgoCD, CI pipeline to Amazon ECR
+             (h) Observability - Prometheus + Grafana dashboard, centralized logging
+  Services : 1. User Service
+             2. Resource Registry
+             3. Room Booking Service
+             6. Availability Service
 
-2022HS120897P   Shreyansh Kedawat    b  Serverless (Lambda) + REST/gRPC/      5 Partition Manager
-                                        message queues (Kafka on MSK, SQS)    4 Equipment Booking Service
-                                     e  Flink stream processing on EMR        7 Notification Service (AWS Lambda)
-                                     f  Consistent hashing (Partition Mgr,    8 Usage Analytics (Flink job + sink)
-                                        ZooKeeper membership, rebalancing)
-                                     g  Storage: RDS PostgreSQL, DynamoDB, S3
-------------------------------------------------------------------------------------------
-
-Code ownership in the repository
-  Animesh Bhargava
-    infra/ (root, modules network, eks, cicd, argocd, observability)
-    services/user-service, services/resource-registry, services/room-booking, services/availability
-    services/common/observability.py, services/Dockerfile, docker-compose.yml
-    gitops/ (root app-of-apps, kustomization, HPAs, gateway, monitoring apps, dashboards, alert rules)
-    .github/workflows/ci.yml, loadtest/, scripts/bootstrap|build-push|port-forward|status|teardown
-  Shreyansh Kedawat
-    infra/modules msk, emr, lambda, data
-    services/partition-manager, services/equipment-booking, services/notification-lambda,
-    services/usage-analytics, services/common/{hashring,booking_core,events,grpc_util}.py, proto/
-    analytics-flink/, gitops/apps/smart-campus/zookeeper.yaml
-    scripts/emr|flink-submit|kafka-consume|demo-hashing|demo-events|seed_bookings
-  Shared: docs/DESIGN.md (each member wrote the sections for their tasks), README.md,
-          scripts/local.sh, scripts/e2e_check.py, services/tests/
+==========================================================================
+Member 2
+  ID No.   : 2022HS120897P
+  Name     : Shreyansh Kedawat
+  Tasks    : (b) Serverless function (AWS Lambda); REST, gRPC and message queue
+                 communication (Kafka on Amazon MSK, Amazon SQS)
+             (e) Stream processing with Apache Flink on Amazon EMR
+             (f) Data partitioning using consistent hashing (Partition Manager)
+             (g) Storage - Amazon RDS (PostgreSQL), Amazon DynamoDB, Amazon S3
+  Services : 4. Equipment Booking Service
+             5. Partition Manager
+             7. Notification Service (AWS Lambda)
+             8. Usage Analytics (Flink job on EMR)
+==========================================================================
