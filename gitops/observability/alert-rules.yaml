@@ -1,0 +1,48 @@
+# Recording + alerting rules (same PrometheusRule pattern as Practice Sheet 11 rules.yaml)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: smart-campus-rules
+  namespace: monitoring
+  labels: { release: kps }
+spec:
+  groups:
+    - name: smart-campus-recording
+      interval: 15s
+      rules:
+        - record: service:http_rps:rate1m
+          expr: sum by (service) (rate(http_requests_total[1m]))
+        - record: service:http_error_ratio:rate1m
+          expr: >
+            sum by (service) (rate(http_requests_total{status=~"5.."}[1m]))
+            / clamp_min(sum by (service) (rate(http_requests_total[1m])), 1e-9)
+        - record: service:http_latency_p95:rate1m
+          expr: histogram_quantile(0.95, sum by (service, le) (rate(http_request_duration_seconds_bucket[1m])))
+    - name: smart-campus-alerts
+      rules:
+        - alert: SmartCampusHighErrorRate
+          expr: service:http_error_ratio:rate1m > 0.05
+          for: 2m
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.service }} 5xx ratio above 5% for 2 minutes"
+        - alert: SmartCampusHighLatency
+          expr: service:http_latency_p95:rate1m > 1
+          for: 3m
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.service }} p95 latency above 1s"
+        - alert: SmartCampusHPAAtMax
+          expr: >
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="smart-campus"}
+            >= kube_horizontalpodautoscaler_spec_max_replicas{namespace="smart-campus"}
+          for: 5m
+          labels: { severity: info }
+          annotations:
+            summary: "HPA {{ $labels.horizontalpodautoscaler }} is pinned at max replicas"
+        - alert: SmartCampusPodNotReady
+          expr: sum by (pod) (kube_pod_status_ready{namespace="smart-campus", condition="false"}) > 0
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "Pod {{ $labels.pod }} not ready for 5 minutes"

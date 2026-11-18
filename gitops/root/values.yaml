@@ -1,0 +1,13 @@
+# Overridden by the root Application that Terraform creates (infra/modules/argocd)
+repoURL: https://github.com/CHANGE-ME/smart-campus.git
+targetRevision: main
+
+# Pinned chart versions (bump here, ArgoCD rolls them out)
+charts:
+  metricsServer: 3.12.2
+  kubePrometheusStack: 66.3.1
+  loki: 6.24.0
+  alloy: 0.10.1
+
+grafanaAdminPassword: lab123
+awsRegion: us-east-1

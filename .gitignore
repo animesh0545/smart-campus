@@ -1,0 +1,25 @@
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl.bak
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/backend.hcl
+infra/.build/
+infra/plan.out
+*.tfplan
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+services/.gen/
+.venv/
+
+# Java / Flink
+analytics-flink/target/
+
+# Misc
+.DS_Store
+*.log
+.env

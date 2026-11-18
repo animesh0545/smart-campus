@@ -1,0 +1,51 @@
+# Deployed by the ArgoCD Application "smart-campus" (gitops/root/templates/apps.yaml).
+# CI (.github/workflows/ci.yml) or scripts/build-push.sh rewrites the `images:`
+# block with the ECR registry and the git SHA tag, then commits; ArgoCD syncs.
+# Never `kubectl apply` these files by hand (requirement d).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: smart-campus
+
+labels:
+  - pairs: { app.kubernetes.io/managed-by: argocd }
+
+resources:
+  - serviceaccount.yaml
+  - zookeeper.yaml
+  - user-service.yaml
+  - resource-registry.yaml
+  - room-booking.yaml
+  - equipment-booking.yaml
+  - availability.yaml
+  - partition-manager.yaml
+  - usage-analytics.yaml
+  - gateway.yaml
+  - hpa.yaml
+
+configMapGenerator:
+  - name: gateway-nginx
+    files:
+      - default.conf=gateway-nginx.conf
+
+images:
+  - name: smart-campus/user-service
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/user-service
+    newTag: initial
+  - name: smart-campus/resource-registry
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/resource-registry
+    newTag: initial
+  - name: smart-campus/room-booking
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/room-booking
+    newTag: initial
+  - name: smart-campus/equipment-booking
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/equipment-booking
+    newTag: initial
+  - name: smart-campus/availability
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/availability
+    newTag: initial
+  - name: smart-campus/partition-manager
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/partition-manager
+    newTag: initial
+  - name: smart-campus/usage-analytics
+    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/usage-analytics
+    newTag: initial

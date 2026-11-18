@@ -1,0 +1,9 @@
+id,name,type,building,capacity,features
+ROOM-101,NAB Seminar Hall 1,ROOM,NAB,150,projector;ac;mic
+ROOM-102,FD-II Tutorial Room 2,ROOM,FD-II,40,whiteboard
+ROOM-103,LTC Lecture Theatre 3,ROOM,LTC,300,projector;ac;recording
+LAB-101,IoT Lab,LAB,NAB,40,pcs;sensors;projector
+LAB-102,Cloud Computing Lab,LAB,FD-I,60,pcs;projector
+EQ-101,Portable Projector 2,EQUIPMENT,FD-III,1,portable;hdmi
+EQ-102,Oscilloscope 2,EQUIPMENT,FD-II,1,portable
+EQ-103,Meta Quest VR Kit,EQUIPMENT,NAB,1,portable;vr

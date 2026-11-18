@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars and edit. terraform.tfvars is git-ignored.
+github_repo  = "YOUR-GITHUB-USER/smart-campus"   # public repo that ArgoCD tracks
+budget_email = "you@example.com"
+
+# budget_limit_usd   = 40
+# notification_email = ""   # set to get real booking emails via SNS (confirm the subscription mail)
+
+# Cost switches
+enable_msk = true    # keep on once created (cheap, slow to recreate)
+enable_emr = false   # turn on only for testing (e) and the demo
+
+# Give the teammate kubectl access (their IAM user ARN):
+# extra_admin_arns = ["arn:aws:iam::123456789012:user/shreyansh"]
+
+# Set false if the account already has a GitHub Actions OIDC provider
+# create_github_oidc_provider = true

@@ -1,0 +1,53 @@
+# usage-analytics: Serving side of the Flink job: analytics-results -> DynamoDB + REST
+# Owner: Shreyansh Kedawat
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usage-analytics
+  labels: { app: usage-analytics, app.kubernetes.io/part-of: smart-campus, owner: shreyansh }
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: usage-analytics }
+  template:
+    metadata:
+      labels: { app: usage-analytics, metrics: "true", app.kubernetes.io/part-of: smart-campus }
+    spec:
+      serviceAccountName: smart-campus-app
+      containers:
+        - name: usage-analytics
+          image: smart-campus/usage-analytics
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8000 }
+          envFrom:
+            - configMapRef: { name: platform-config }
+            - secretRef: { name: platform-secrets }
+          env:
+            - name: SERVICE_NAME
+              value: "usage-analytics"
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-analytics
+  labels: { app: usage-analytics }
+spec:
+  selector: { app: usage-analytics }
+  ports:
+    - { name: http, port: 8000, targetPort: http }

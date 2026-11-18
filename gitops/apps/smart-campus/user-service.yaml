@@ -1,0 +1,53 @@
+# user-service: Campus users and roles (RDS: users DB)
+# Owner: Animesh Bhargava
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels: { app: user-service, app.kubernetes.io/part-of: smart-campus, owner: animesh }
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: user-service }
+  template:
+    metadata:
+      labels: { app: user-service, metrics: "true", app.kubernetes.io/part-of: smart-campus }
+    spec:
+      serviceAccountName: smart-campus-app
+      containers:
+        - name: user-service
+          image: smart-campus/user-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8000 }
+          envFrom:
+            - configMapRef: { name: platform-config }
+            - secretRef: { name: platform-secrets }
+          env:
+            - name: SERVICE_NAME
+              value: "user-service"
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  labels: { app: user-service }
+spec:
+  selector: { app: user-service }
+  ports:
+    - { name: http, port: 8000, targetPort: http }

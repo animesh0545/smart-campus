@@ -1,0 +1,145 @@
+# Second dashboard: logs that live in CloudWatch (EMR/Flink + Lambda), queried by
+# Grafana's CloudWatch data source, so ALL logs are reachable from one Grafana.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smart-campus-cloudwatch-logs
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  smart-campus-cloudwatch-logs.json: |
+    {
+      "title": "Smart Campus - Serverless & Flink logs (CloudWatch)",
+      "uid": "smart-campus-cloudwatch-logs",
+      "tags": [
+        "smart-campus",
+        "logs"
+      ],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "type": "logs",
+          "title": "Usage Analytics: Flink job on EMR (JobManager / TaskManager / step logs)",
+          "id": 1,
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "options": {
+            "showTime": true,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "enableLogDetails": true
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "cloudwatch"
+              },
+              "queryMode": "Logs",
+              "region": "default",
+              "logGroupNames": [
+                "/smart-campus/flink"
+              ],
+              "logGroups": [],
+              "expression": "fields @timestamp, @logStream, @message | sort @timestamp desc | limit 200",
+              "id": "",
+              "statsGroups": []
+            }
+          ]
+        },
+        {
+          "type": "logs",
+          "title": "Flink window results (one line per resource per 1-minute window)",
+          "id": 2,
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "options": {
+            "showTime": true,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "enableLogDetails": true
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "cloudwatch"
+              },
+              "queryMode": "Logs",
+              "region": "default",
+              "logGroupNames": [
+                "/smart-campus/flink"
+              ],
+              "logGroups": [],
+              "expression": "fields @timestamp, @message | filter @message like /WINDOW_RESULT/ | sort @timestamp desc | limit 100",
+              "id": "",
+              "statsGroups": []
+            }
+          ]
+        },
+        {
+          "type": "logs",
+          "title": "Notification Service: Lambda",
+          "id": 3,
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 24
+          },
+          "options": {
+            "showTime": true,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "enableLogDetails": true
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "cloudwatch"
+              },
+              "queryMode": "Logs",
+              "region": "default",
+              "logGroupNames": [
+                "/aws/lambda/smart-campus-notification"
+              ],
+              "logGroups": [],
+              "expression": "fields @timestamp, @message | sort @timestamp desc | limit 200",
+              "id": "",
+              "statsGroups": []
+            }
+          ]
+        }
+      ]
+    }

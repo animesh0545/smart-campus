@@ -1,0 +1,213 @@
+# Observability stack (requirement h), all deployed by ArgoCD from Git.
+#   kube-prometheus-stack : Prometheus + Grafana + kube-state-metrics + node-exporter
+#                           (same chart as Practice Sheet 11, release name "kps")
+#   loki                  : log store (Practice Sheet 6)
+#   alloy                 : log shipper, tails every pod's stdout -> Loki (Practice Sheet 6)
+# Grafana also gets a CloudWatch data source (EKS Pod Identity role created by
+# Terraform) for the Flink/EMR and Lambda logs.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: {{ .Values.charts.kubePrometheusStack }}
+    helm:
+      releaseName: kps
+      valuesObject:
+        fullnameOverride: kps
+        alertmanager:
+          enabled: false
+        # EKS hides the control plane, so these scrapes would only show DOWN targets
+        kubeEtcd: { enabled: false }
+        kubeControllerManager: { enabled: false }
+        kubeScheduler: { enabled: false }
+        kubeProxy: { enabled: false }
+        prometheus:
+          prometheusSpec:
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            retention: 2d
+            scrapeInterval: 15s
+            resources:
+              requests: { cpu: 200m, memory: 512Mi }
+        grafana:
+          adminPassword: {{ .Values.grafanaAdminPassword | quote }}
+          serviceAccount:
+            name: kps-grafana   # EKS Pod Identity association (Terraform) targets this name
+          env:
+            AWS_REGION: {{ .Values.awsRegion }}
+            AWS_DEFAULT_REGION: {{ .Values.awsRegion }}
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              searchNamespace: ALL
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              uid: loki
+              access: proxy
+              url: http://loki.monitoring.svc.cluster.local:3100
+              jsonData: { maxLines: 1000 }
+            - name: CloudWatch
+              type: cloudwatch
+              uid: cloudwatch
+              jsonData:
+                authType: default
+                defaultRegion: {{ .Values.awsRegion }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true   # the Prometheus Operator CRDs are too large for client-side apply
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 3m } }
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: loki
+    targetRevision: {{ .Values.charts.loki }}
+    helm:
+      releaseName: loki
+      valuesObject:
+        deploymentMode: SingleBinary
+        loki:
+          auth_enabled: false
+          commonConfig:
+            replication_factor: 1
+          storage:
+            type: filesystem
+          schemaConfig:
+            configs:
+              - from: "2024-01-01"
+                store: tsdb
+                object_store: filesystem
+                schema: v13
+                index: { prefix: loki_index_, period: 24h }
+          limits_config:
+            retention_period: 72h
+            allow_structured_metadata: true
+        singleBinary:
+          replicas: 1
+          persistence: { enabled: false }   # emptyDir: logs survive pod restarts only for the demo window
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+        read: { replicas: 0 }
+        write: { replicas: 0 }
+        backend: { replicas: 0 }
+        chunksCache: { enabled: false }
+        resultsCache: { enabled: false }
+        gateway: { enabled: false }
+        lokiCanary: { enabled: false }
+        test: { enabled: false }
+        minio: { enabled: false }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 3m } }
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: {{ .Values.charts.alloy }}
+    helm:
+      releaseName: alloy
+      valuesObject:
+        controller:
+          type: deployment   # loki.source.kubernetes tails via the API server, one replica = no duplicates
+          replicas: 1
+        alloy:
+          configMap:
+            create: true
+            content: |
+              // Tail stdout of every pod in the cluster and push it to Loki.
+              discovery.kubernetes "pods" {
+                role = "pod"
+              }
+
+              discovery.relabel "pods" {
+                targets = discovery.kubernetes.pods.targets
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_label_app"]
+                  target_label  = "app"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_node_name"]
+                  target_label  = "node"
+                }
+              }
+
+              loki.source.kubernetes "pods" {
+                targets    = discovery.relabel.pods.output
+                forward_to = [loki.process.json.receiver]
+              }
+
+              // Our services log JSON: promote level and service to Loki labels.
+              loki.process "json" {
+                stage.json {
+                  expressions = { level = "level", service = "service" }
+                }
+                stage.labels {
+                  values = { level = "", service = "" }
+                }
+                forward_to = [loki.write.default.receiver]
+              }
+
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+                }
+              }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
+    retry: { limit: 10, backoff: { duration: 15s, factor: 2, maxDuration: 3m } }

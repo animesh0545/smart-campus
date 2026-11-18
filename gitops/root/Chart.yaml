@@ -1,0 +1,10 @@
+apiVersion: v2
+name: smart-campus-root
+description: >
+  App-of-apps for the Smart Campus platform. Terraform creates ONE ArgoCD
+  Application that points here; this chart renders the child Applications
+  (monitoring stack, observability config, the 8-service application).
+  It is a Helm chart only so that the Git repo URL is injected once (from
+  Terraform) and not hard-coded in every child Application.
+type: application
+version: 1.0.0

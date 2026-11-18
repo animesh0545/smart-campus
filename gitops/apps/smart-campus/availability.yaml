@@ -1,0 +1,68 @@
+# availability: Slot availability and conflicts (gRPC + REST); HPA-scaled
+# Owner: Animesh Bhargava
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: availability
+  labels: { app: availability, app.kubernetes.io/part-of: smart-campus, owner: animesh }
+spec:
+  # replicas managed by the HorizontalPodAutoscaler (hpa.yaml)
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: availability }
+  template:
+    metadata:
+      labels: { app: availability, metrics: "true", app.kubernetes.io/part-of: smart-campus }
+    spec:
+      serviceAccountName: smart-campus-app
+      containers:
+        - name: availability
+          image: smart-campus/availability
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8000 }
+            - { name: grpc, containerPort: 50051 }
+          envFrom:
+            - configMapRef: { name: platform-config }
+            - secretRef: { name: platform-secrets }
+          env:
+            - name: SERVICE_NAME
+              value: "availability"
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: availability
+  labels: { app: availability }
+spec:
+  selector: { app: availability }
+  ports:
+    - { name: http, port: 8000, targetPort: http }
+    - { name: grpc, port: 50051, targetPort: grpc }
+---
+# Headless Service: gRPC clients resolve every pod IP (dns:///availability-headless:50051)
+# and round-robin across them, so HPA-added pods receive gRPC traffic too.
+apiVersion: v1
+kind: Service
+metadata:
+  name: availability-headless
+  labels: { app: availability }
+spec:
+  clusterIP: None
+  selector: { app: availability }
+  ports:
+    - { name: grpc, port: 50051, targetPort: grpc }

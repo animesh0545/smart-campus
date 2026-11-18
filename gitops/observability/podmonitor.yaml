@@ -1,0 +1,19 @@
+# Prometheus scrapes /metrics of every Smart Campus pod labelled metrics=true
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: smart-campus
+  namespace: monitoring
+  labels: { release: kps }
+spec:
+  namespaceSelector:
+    matchNames: [smart-campus]
+  selector:
+    matchLabels: { metrics: "true" }
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_app]
+          targetLabel: app

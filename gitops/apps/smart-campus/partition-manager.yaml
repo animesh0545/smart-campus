@@ -1,0 +1,70 @@
+# partition-manager: Consistent hashing routing tier (ZooKeeper membership)
+# Owner: Shreyansh Kedawat
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: partition-manager
+  labels: { app: partition-manager, app.kubernetes.io/part-of: smart-campus, owner: shreyansh }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: partition-manager }
+  template:
+    metadata:
+      labels: { app: partition-manager, metrics: "true", app.kubernetes.io/part-of: smart-campus }
+    spec:
+      serviceAccountName: smart-campus-app
+      containers:
+        - name: partition-manager
+          image: smart-campus/partition-manager
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8000 }
+            - { name: grpc, containerPort: 50051 }
+          envFrom:
+            - configMapRef: { name: platform-config }
+            - secretRef: { name: platform-secrets }
+          env:
+            - name: SERVICE_NAME
+              value: "partition-manager"
+            - name: VNODES
+              value: "150"
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: partition-manager
+  labels: { app: partition-manager }
+spec:
+  selector: { app: partition-manager }
+  ports:
+    - { name: http, port: 8000, targetPort: http }
+    - { name: grpc, port: 50051, targetPort: grpc }
+---
+# Headless Service: gRPC clients resolve every pod IP (dns:///partition-manager-headless:50051)
+# and round-robin across them, so HPA-added pods receive gRPC traffic too.
+apiVersion: v1
+kind: Service
+metadata:
+  name: partition-manager-headless
+  labels: { app: partition-manager }
+spec:
+  clusterIP: None
+  selector: { app: partition-manager }
+  ports:
+    - { name: grpc, port: 50051, targetPort: grpc }

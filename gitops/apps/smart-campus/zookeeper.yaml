@@ -1,0 +1,49 @@
+# ZooKeeper: ring membership + rebalance lock for the Partition Manager
+# (lecture: "each node registers in ZooKeeper, which notifies the routing tier").
+# Same image as Lab 8. Single standalone server is enough for the assignment.
+# Data is ephemeral (emptyDir): after a ZooKeeper restart the Partition Manager
+# re-seeds the initial members node-0..node-2.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+  labels: { app: zookeeper, app.kubernetes.io/part-of: smart-campus, owner: shreyansh }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: zookeeper }
+  template:
+    metadata:
+      labels: { app: zookeeper, app.kubernetes.io/part-of: smart-campus }
+    spec:
+      containers:
+        - name: zookeeper
+          image: zookeeper:3.9.3
+          ports:
+            - { name: client, containerPort: 2181 }
+          env:
+            - name: ZOO_4LW_COMMANDS_WHITELIST
+              value: "ruok,stat,mntr,srvr"
+          resources:
+            requests: { cpu: 50m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          readinessProbe:
+            tcpSocket: { port: client }
+            periodSeconds: 10
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: datalog, mountPath: /datalog }
+      volumes:
+        - { name: data, emptyDir: {} }
+        - { name: datalog, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  labels: { app: zookeeper }
+spec:
+  selector: { app: zookeeper }
+  ports:
+    - { name: client, port: 2181, targetPort: client }

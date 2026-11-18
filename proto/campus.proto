@@ -1,0 +1,66 @@
+// Internal gRPC contracts for the Smart Campus hot path (requirement b).
+//   Room/Equipment Booking -> Availability.Check          (conflict check before every write)
+//   Booking / Availability -> PartitionService.Lookup     (consistent-hash routing tier, requirement f)
+syntax = "proto3";
+
+package campus;
+
+// ---------------------------------------------------------------- Partition Manager
+service PartitionService {
+  // Which storage node (DynamoDB table) owns this partition key?
+  rpc Lookup (LookupRequest) returns (LookupReply);
+  // Current ring membership
+  rpc GetRing (Empty) returns (RingReply);
+}
+
+message Empty {}
+
+message LookupRequest {
+  string key = 1;            // resourceId#date
+}
+
+message LookupReply {
+  string key = 1;
+  string node_id = 2;        // e.g. node-1
+  string table = 3;          // e.g. smart-campus-bookings-node-1
+  string token = 4;          // ring position of the owning virtual node (160-bit int as decimal string)
+  int64 ring_version = 5;    // ZooKeeper cversion of the membership znode
+}
+
+message RingNode {
+  string node_id = 1;
+  string table = 2;
+  double ownership = 3;      // fraction of the hash space owned
+}
+
+message RingReply {
+  repeated RingNode nodes = 1;
+  int32 vnodes = 2;
+  int64 ring_version = 3;
+}
+
+// ---------------------------------------------------------------- Availability
+service AvailabilityService {
+  rpc Check (AvailabilityRequest) returns (AvailabilityReply);
+}
+
+message AvailabilityRequest {
+  string resource_id = 1;
+  string date = 2;               // YYYY-MM-DD
+  string start_time = 3;         // HH:MM
+  string end_time = 4;           // HH:MM
+  string exclude_booking_id = 5; // ignore this booking (used when modifying)
+}
+
+message Conflict {
+  string booking_id = 1;
+  string start_time = 2;
+  string end_time = 3;
+  string user_id = 4;
+}
+
+message AvailabilityReply {
+  bool available = 1;
+  repeated Conflict conflicts = 2;
+  string node_id = 3;            // partition node that answered
+}

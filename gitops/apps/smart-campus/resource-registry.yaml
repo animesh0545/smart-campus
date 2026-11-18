@@ -1,0 +1,53 @@
+# resource-registry: Rooms, labs, equipment (RDS: resources DB; CSV imports to S3)
+# Owner: Animesh Bhargava
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-registry
+  labels: { app: resource-registry, app.kubernetes.io/part-of: smart-campus, owner: animesh }
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app: resource-registry }
+  template:
+    metadata:
+      labels: { app: resource-registry, metrics: "true", app.kubernetes.io/part-of: smart-campus }
+    spec:
+      serviceAccountName: smart-campus-app
+      containers:
+        - name: resource-registry
+          image: smart-campus/resource-registry
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8000 }
+          envFrom:
+            - configMapRef: { name: platform-config }
+            - secretRef: { name: platform-secrets }
+          env:
+            - name: SERVICE_NAME
+              value: "resource-registry"
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resource-registry
+  labels: { app: resource-registry }
+spec:
+  selector: { app: resource-registry }
+  ports:
+    - { name: http, port: 8000, targetPort: http }
