@@ -2,12 +2,13 @@
 # EMR bootstrap action: ship Flink (YARN container) logs and EMR step logs to
 # CloudWatch Logs group ${log_group}, so they show up in Grafana next to the
 # Loki logs of the EKS services (centralized logging, requirement h).
-set -euxo pipefail
+# Never fail the bootstrap: a failed bootstrap action terminates the whole EMR
+# cluster. If the agent cannot be installed, logs still go to S3 (log_uri).
+set -uxo pipefail
 
-if command -v dnf >/dev/null 2>&1; then
-  sudo dnf install -y amazon-cloudwatch-agent
-else
-  sudo yum install -y amazon-cloudwatch-agent
+if ! sudo dnf install -y amazon-cloudwatch-agent && ! sudo yum install -y amazon-cloudwatch-agent; then
+  echo "WARNING: amazon-cloudwatch-agent not installed; Flink logs only in S3" >&2
+  exit 0
 fi
 
 sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
@@ -57,4 +58,6 @@ EOF
 
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
   -a fetch-config -m ec2 -s \
-  -c file:/opt/aws/amazon-cloudwatch-agent/etc/flink-logs.json
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/flink-logs.json \
+  || echo "WARNING: CloudWatch agent did not start; Flink logs only in S3" >&2
+exit 0
