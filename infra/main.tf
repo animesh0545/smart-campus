@@ -72,29 +72,29 @@ module "observability" {
 
 # ------------------------------------------------------------------ Flink on EMR (e)
 module "emr" {
-  count             = var.enable_emr ? 1 : 0
-  source            = "./modules/emr"
-  name              = local.name
-  vpc_id            = module.network.vpc_id
-  vpc_cidr          = module.network.vpc_cidr
-  subnet_id         = module.network.public_subnet_ids[0]
-  release_label     = var.emr_release
-  instance_type     = var.emr_instance_type
-  artifacts_bucket  = module.data.artifacts_bucket
-  flink_log_group   = module.observability.flink_log_group
+  count            = var.enable_emr ? 1 : 0
+  source           = "./modules/emr"
+  name             = local.name
+  vpc_id           = module.network.vpc_id
+  vpc_cidr         = module.network.vpc_cidr
+  subnet_id        = module.network.public_subnet_ids[0]
+  release_label    = var.emr_release
+  instance_type    = var.emr_instance_type
+  artifacts_bucket = module.data.artifacts_bucket
+  flink_log_group  = module.observability.flink_log_group
 }
 
 # ------------------------------------------------------------------ Notification Lambda (b)
 module "lambda" {
-  source               = "./modules/lambda"
-  name                 = local.name
-  source_dir           = "${path.root}/../services/notification-lambda"
-  queue_arn            = module.data.notifications_queue_arn
-  uploads_bucket       = module.data.uploads_bucket
-  uploads_bucket_arn   = module.data.uploads_bucket_arn
-  notifications_table  = module.data.notifications_table
-  notifications_arn    = module.data.notifications_table_arn
-  sns_topic_arn        = module.data.sns_topic_arn
+  source              = "./modules/lambda"
+  name                = local.name
+  source_dir          = "${path.root}/../services/notification-lambda"
+  queue_arn           = module.data.notifications_queue_arn
+  uploads_bucket      = module.data.uploads_bucket
+  uploads_bucket_arn  = module.data.uploads_bucket_arn
+  notifications_table = module.data.notifications_table
+  notifications_arn   = module.data.notifications_table_arn
+  sns_topic_arn       = module.data.sns_topic_arn
 }
 
 # ------------------------------------------------------------------ ArgoCD + cluster bootstrap config (d)
@@ -107,22 +107,22 @@ module "argocd" {
   aws_region    = var.region
 
   platform_config = {
-    AWS_REGION            = var.region
-    AWS_DEFAULT_REGION    = var.region
-    KAFKA_BOOTSTRAP       = var.enable_msk ? module.msk[0].bootstrap_brokers : ""
-    KAFKA_REPLICATION     = "2"
-    BOOKING_EVENTS_TOPIC  = "booking-events"
-    ANALYTICS_TOPIC       = "analytics-results"
-    SQS_QUEUE_URL         = module.data.notifications_queue_url
-    UPLOADS_BUCKET        = module.data.uploads_bucket
-    NODE_TABLES           = jsonencode(module.data.partition_tables)
-    INITIAL_NODES         = join(",", local.initial_nodes)
-    ANALYTICS_TABLE       = module.data.analytics_table
-    NOTIFICATIONS_TABLE   = module.data.notifications_table
-    DB_HOST               = module.data.db_host
-    DB_PORT               = "5432"
-    DB_USER               = module.data.db_username
-    ZK_HOSTS              = "zookeeper.${local.app_namespace}.svc.cluster.local:2181"
+    AWS_REGION           = var.region
+    AWS_DEFAULT_REGION   = var.region
+    KAFKA_BOOTSTRAP      = var.enable_msk ? module.msk[0].bootstrap_brokers : ""
+    KAFKA_REPLICATION    = "2"
+    BOOKING_EVENTS_TOPIC = "booking-events"
+    ANALYTICS_TOPIC      = "analytics-results"
+    SQS_QUEUE_URL        = module.data.notifications_queue_url
+    UPLOADS_BUCKET       = module.data.uploads_bucket
+    NODE_TABLES          = jsonencode(module.data.partition_tables)
+    INITIAL_NODES        = join(",", local.initial_nodes)
+    ANALYTICS_TABLE      = module.data.analytics_table
+    NOTIFICATIONS_TABLE  = module.data.notifications_table
+    DB_HOST              = module.data.db_host
+    DB_PORT              = "5432"
+    DB_USER              = module.data.db_username
+    ZK_HOSTS             = "zookeeper.${local.app_namespace}.svc.cluster.local:2181"
   }
 
   platform_secrets = {
