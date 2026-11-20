@@ -40,6 +40,21 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Also bundled in the Flink distribution on EMR, but not passed on
+         transitively by Maven, so they must be declared to compile -->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-connector-base</artifactId>
+      <version>${flink.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.36</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Shaded into the job jar -->
     <dependency>
       <groupId>org.apache.flink</groupId>

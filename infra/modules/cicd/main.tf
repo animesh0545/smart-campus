@@ -68,10 +68,15 @@ data "aws_iam_policy_document" "gha_trust" {
       variable = "token.actions.githubusercontent.com:aud"
       values   = ["sts.amazonaws.com"]
     }
+    # GitHub issues two subject formats: the classic "repo:OWNER/REPO:..." and,
+    # for repositories created after 15 July 2026, "repo:OWNER@<id>/REPO@<id>:...".
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values = [
+        "repo:${var.github_repo}:*",
+        "repo:${split("/", var.github_repo)[0]}@*/${split("/", var.github_repo)[1]}@*:*",
+      ]
     }
   }
 }
