@@ -29,23 +29,23 @@ configMapGenerator:
 
 images:
   - name: smart-campus/user-service
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/user-service
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/user-service
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/resource-registry
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/resource-registry
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/resource-registry
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/room-booking
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/room-booking
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/room-booking
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/equipment-booking
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/equipment-booking
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/equipment-booking
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/availability
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/availability
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/availability
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/partition-manager
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/partition-manager
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/partition-manager
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
   - name: smart-campus/usage-analytics
-    newName: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/smart-campus/usage-analytics
-    newTag: initial
+    newName: 486408348586.dkr.ecr.us-east-1.amazonaws.com/smart-campus/usage-analytics
+    newTag: 9ea972acbc825ff524f209026f71c02a6aa234bf
